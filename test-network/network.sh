@@ -96,7 +96,7 @@ function checkPrereqs() {
 
   ## check for cfssl binaries
   if [ "$CRYPTO" == "cfssl" ]; then
-  
+
     cfssl version > /dev/null 2>&1
     if [[ $? -ne 0 ]]; then
       errorln "cfssl binary not found.."
@@ -177,15 +177,15 @@ function createOrgs() {
       fatalln "Failed to generate certificates..."
     fi
 
-    infoln "Creating Org2 Identities"
-
-    set -x
-    cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
-    res=$?
-    { set +x; } 2>/dev/null
-    if [ $res -ne 0 ]; then
-      fatalln "Failed to generate certificates..."
-    fi
+#    infoln "Creating Org2 Identities"
+#
+#    set -x
+#    cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
+#    res=$?
+#    { set +x; } 2>/dev/null
+#    if [ $res -ne 0 ]; then
+#      fatalln "Failed to generate certificates..."
+#    fi
 
     infoln "Creating Orderer Org Identities"
 
@@ -213,11 +213,11 @@ function createOrgs() {
     peer_cert admin Admin@org2.example.com org2
 
     infoln "Creating Orderer Org Identities"
-    #function_name cert-type   CN   
+    #function_name cert-type   CN
     orderer_cert orderer orderer.example.com
     orderer_cert admin Admin@example.com
 
-  fi 
+  fi
 
   # Create crypto material using Fabric CA
   if [ "$CRYPTO" == "Certificate Authorities" ]; then
@@ -401,7 +401,7 @@ function listChaincode() {
 
 }
 
-## Call the script to invoke 
+## Call the script to invoke
 function invokeChaincode() {
 
   export FABRIC_CFG_PATH=${PWD}/../config
@@ -415,11 +415,11 @@ function invokeChaincode() {
 
 }
 
-## Call the script to query chaincode 
+## Call the script to query chaincode
 function queryChaincode() {
 
   export FABRIC_CFG_PATH=${PWD}/../config
-  
+
   . scripts/envVar.sh
   . scripts/ccutils.sh
 
@@ -478,7 +478,8 @@ function networkDown() {
 . ./network.config
 
 # use this as the default docker-compose yaml definition
-COMPOSE_FILE_BASE=compose-test-net.yaml
+#COMPOSE_FILE_BASE=compose-test-net.yaml
+COMPOSE_FILE_BASE=compose-3-peers.yaml
 # docker-compose.yaml file if you are using couchdb
 COMPOSE_FILE_COUCH=compose-couch.yaml
 # certificate authorities compose file
@@ -624,7 +625,7 @@ while [[ $# -ge 1 ]] ; do
   -ccqc )
     CC_QUERY_CONSTRUCTOR="$2"
     shift
-    ;;    
+    ;;
   * )
     errorln "Unknown flag: $key"
     printHelp
