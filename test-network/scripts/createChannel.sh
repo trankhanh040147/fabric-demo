@@ -71,24 +71,26 @@ createChannel() {
 }
 
 # joinChannel ORG
+# Modified function to accept ORG and PEER number
 joinChannel() {
   ORG=$1
+  PEER=$2
   FABRIC_CFG_PATH=$PWD/../config/
-  setGlobals $ORG
-	local rc=1
-	local COUNTER=1
-	## Sometimes Join takes time, hence retry
-	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
+  setGlobals $ORG $PEER # <--- Pass both ORG and PEER
+  local rc=1
+  local COUNTER=1
+  ## Sometimes Join takes time, hence retry
+  while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
     set -x
     peer channel join -b $BLOCKFILE >&log.txt
     res=$?
     { set +x; } 2>/dev/null
-		let rc=$res
-		COUNTER=$(expr $COUNTER + 1)
-	done
-	cat log.txt
-	verifyResult $res "After $MAX_RETRY attempts, peer0.org${ORG} has failed to join channel '$CHANNEL_NAME' "
+    let rc=$res
+    COUNTER=$(expr $COUNTER + 1)
+  done
+  cat log.txt
+  verifyResult $res "After $MAX_RETRY attempts, peer${PEER}.org${ORG} has failed to join channel '$CHANNEL_NAME' "
 }
 
 setAnchorPeer() {
@@ -114,10 +116,10 @@ createChannel $BFT
 successln "Channel '$CHANNEL_NAME' created"
 
 ## Join all the peers to the channel
-infoln "Joining org1 peer to the channel..."
-joinChannel 1
-#infoln "Joining org2 peer to the channel..."
-#joinChannel 2
+infoln "Joining org1 peers to the channel..."
+joinChannel 1 0 # Join peer0.org1
+joinChannel 1 1 # Join peer1.org1
+joinChannel 1 2 # Join peer2.org1
 
 ## Set the anchor peers for each org in the channel
 infoln "Setting anchor peer for org1..."
