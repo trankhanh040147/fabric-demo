@@ -207,10 +207,10 @@ function createOrgs() {
     peer_cert peer peer0.org1.example.com org1
     peer_cert admin Admin@org1.example.com org1
 
-    infoln "Creating Org2 Identities"
-    #function_name cert-type   CN   org
-    peer_cert peer peer0.org2.example.com org2
-    peer_cert admin Admin@org2.example.com org2
+#    infoln "Creating Org2 Identities"
+#    #function_name cert-type   CN   org
+#    peer_cert peer peer0.org2.example.com org2
+#    peer_cert admin Admin@org2.example.com org2
 
     infoln "Creating Orderer Org Identities"
     #function_name cert-type   CN
@@ -254,9 +254,9 @@ function createOrgs() {
 
     createOrg1
 
-    infoln "Creating Org2 Identities"
-
-    createOrg2
+#    infoln "Creating Org2 Identities"
+#
+#    createOrg2
 
     infoln "Creating Orderer Org Identities"
 
@@ -433,7 +433,8 @@ function queryChaincode() {
 # Tear down running network
 function networkDown() {
   local temp_compose=$COMPOSE_FILE_BASE
-  COMPOSE_FILE_BASE=compose-bft-test-net.yaml
+#  COMPOSE_FILE_BASE=compose-bft-test-net.yaml
+  COMPOSE_FILE_BASE=compose-3-peers.yaml
   COMPOSE_BASE_FILES="-f compose/${COMPOSE_FILE_BASE} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_BASE}"
   COMPOSE_COUCH_FILES="-f compose/${COMPOSE_FILE_COUCH} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_COUCH}"
   COMPOSE_CA_FILES="-f compose/${COMPOSE_FILE_CA} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_CA}"
