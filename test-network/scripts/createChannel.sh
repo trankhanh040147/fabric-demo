@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# imports  
+# imports
 . scripts/envVar.sh
 
 CHANNEL_NAME="$1"
@@ -38,6 +38,7 @@ createChannelGenesisBlock() {
 	if [ $bft_true -eq 1 ]; then
 		configtxgen -profile ChannelUsingBFT -outputBlock ./channel-artifacts/${CHANNEL_NAME}.block -channelID $CHANNEL_NAME
 	else
+	  infoln "Generating channel configuration transaction for Raft orderer"
 		configtxgen -profile ChannelUsingRaft -outputBlock ./channel-artifacts/${CHANNEL_NAME}.block -channelID $CHANNEL_NAME
 	fi
 	res=$?
@@ -92,7 +93,7 @@ joinChannel() {
 
 setAnchorPeer() {
   ORG=$1
-  . scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME 
+  . scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
 }
 
 ## Create channel genesis block
@@ -115,13 +116,13 @@ successln "Channel '$CHANNEL_NAME' created"
 ## Join all the peers to the channel
 infoln "Joining org1 peer to the channel..."
 joinChannel 1
-infoln "Joining org2 peer to the channel..."
-joinChannel 2
+#infoln "Joining org2 peer to the channel..."
+#joinChannel 2
 
 ## Set the anchor peers for each org in the channel
 infoln "Setting anchor peer for org1..."
 setAnchorPeer 1
-infoln "Setting anchor peer for org2..."
-setAnchorPeer 2
+#infoln "Setting anchor peer for org2..."
+#setAnchorPeer 2
 
 successln "Channel '$CHANNEL_NAME' joined"
