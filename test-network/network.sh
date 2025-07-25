@@ -177,15 +177,15 @@ function createOrgs() {
       fatalln "Failed to generate certificates..."
     fi
 
-#    infoln "Creating Org2 Identities"
-#
-#    set -x
-#    cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
-#    res=$?
-#    { set +x; } 2>/dev/null
-#    if [ $res -ne 0 ]; then
-#      fatalln "Failed to generate certificates..."
-#    fi
+    infoln "Creating Org2 Identities"
+
+    set -x
+    cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
+    res=$?
+    { set +x; } 2>/dev/null
+    if [ $res -ne 0 ]; then
+      fatalln "Failed to generate certificates..."
+    fi
 
     infoln "Creating Orderer Org Identities"
 
@@ -434,7 +434,7 @@ function queryChaincode() {
 function networkDown() {
   local temp_compose=$COMPOSE_FILE_BASE
 #  COMPOSE_FILE_BASE=compose-bft-test-net.yaml
-  COMPOSE_FILE_BASE=compose-3-peers.yaml
+  COMPOSE_FILE_BASE=compose-2-org.yaml
   COMPOSE_BASE_FILES="-f compose/${COMPOSE_FILE_BASE} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_BASE}"
   COMPOSE_COUCH_FILES="-f compose/${COMPOSE_FILE_COUCH} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_COUCH}"
   COMPOSE_CA_FILES="-f compose/${COMPOSE_FILE_CA} -f compose/${CONTAINER_CLI}/${CONTAINER_CLI}-${COMPOSE_FILE_CA}"
@@ -480,7 +480,7 @@ function networkDown() {
 
 # use this as the default docker-compose yaml definition
 #COMPOSE_FILE_BASE=compose-test-net.yaml
-COMPOSE_FILE_BASE=compose-3-peers.yaml
+COMPOSE_FILE_BASE=compose-2-org.yaml
 # docker-compose.yaml file if you are using couchdb
 COMPOSE_FILE_COUCH=compose-couch.yaml
 # certificate authorities compose file
