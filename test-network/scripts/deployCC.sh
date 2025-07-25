@@ -74,8 +74,11 @@ checkPrereqs
 PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
 
 ## Install chaincode on peer0.org1 and peer0.org2
-infoln "Installing chaincode on peer0.org1..."
-installChaincode 1
+infoln "Installing chaincode on all peers in Org1..."
+installChaincode 1 0
+installChaincode 1 1
+installChaincode 1 2
+
 #infoln "Install chaincode on peer0.org2..."
 #installChaincode 2
 

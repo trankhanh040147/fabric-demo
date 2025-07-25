@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-# installChaincode PEER ORG
+# installChaincode ORG PEER
 function installChaincode() {
   ORG=$1
-  setGlobals $ORG
+  PEER=$2
+  setGlobals $ORG $PEER
   set -x
   peer lifecycle chaincode queryinstalled --output json | jq -r 'try (.installed_chaincodes[].package_id)' | grep ^${PACKAGE_ID}$ >&log.txt
   if test $? -ne 0; then
@@ -12,8 +13,8 @@ function installChaincode() {
   fi
   { set +x; } 2>/dev/null
   cat log.txt
-  verifyResult $res "Chaincode installation on peer0.org${ORG} has failed"
-  successln "Chaincode is installed on peer0.org${ORG}"
+  verifyResult $res "Chaincode installation on peer${PEER}.org${ORG} has failed"
+  successln "Chaincode is installed on peer${PEER}.org${ORG}"
 }
 
 # queryInstalled PEER ORG
@@ -292,7 +293,7 @@ chaincodeInvoke() {
   CHANNEL=$2
   CC_NAME=$3
   CC_INVOKE_CONSTRUCTOR=$4
-  
+
   infoln "Invoking on peer0.org${ORG} on channel '$CHANNEL_NAME'..."
   local rc=1
   local COUNTER=1
