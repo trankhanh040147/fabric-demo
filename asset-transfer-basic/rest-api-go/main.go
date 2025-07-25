@@ -37,7 +37,7 @@ func main() {
 		KeyPath:      cryptoPath + "/users/User1@org1.example.com/msp/keystore/",
 		TLSCertPath:  cryptoPath + "/peers/peer1.org1.example.com/tls/ca.crt",
 		PeerEndpoint: "dns:///localhost:9051",
-		GatewayPeer:  "peer2.org1.example.com",
+		GatewayPeer:  "peer1.org1.example.com",
 	}
 
 	orgSetup, err := web.Initialize(orgConfig)

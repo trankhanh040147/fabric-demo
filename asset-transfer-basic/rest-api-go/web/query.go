@@ -16,7 +16,7 @@ func (setup OrgSetup) Query(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("channel: %s, chaincode: %s, function: %s, args: %s\n", channelID, chainCodeName, function, args)
 	network := setup.Gateway.GetNetwork(channelID)
 	contract := network.GetContract(chainCodeName)
-	evaluateResponse, err := contract.EvaluateTransaction(function, args...)
+	evaluateResponse, err := contract.SubmitTransaction(function, args...)
 	if err != nil {
 		fmt.Fprintf(w, "Error: %s", err)
 		return

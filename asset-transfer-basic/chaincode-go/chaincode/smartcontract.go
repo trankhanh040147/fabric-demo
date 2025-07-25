@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/bytedance/sonic"
 	"github.com/hyperledger/fabric-contract-api-go/v2/contractapi"
 )
 
@@ -66,7 +67,7 @@ func (s *SmartContract) CreateAsset(ctx contractapi.TransactionContextInterface,
 		Owner:          owner,
 		AppraisedValue: appraisedValue,
 	}
-	assetJSON, err := json.Marshal(asset)
+	assetJSON, err := sonic.Marshal(asset)
 	if err != nil {
 		return err
 	}
