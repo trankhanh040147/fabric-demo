@@ -31,6 +31,7 @@ Nói cách khác, bạn đã phá vỡ sự đồng bộ giữa World State và 
 Khi bạn làm theo cách này, giao dịch cập nhật sẽ được ghi vào blockchain, và sau đó tất cả các peer sẽ cập nhật World State (CouchDB) của họ. Lúc này, hàm `ReadAsset` sẽ truy vấn CouchDB và trả về dữ liệu mới nhất một cách chính xác.
 
 ---
+
 # Q: Logic mà Fabric kiểm tra dữ liệu được thay đổi trên world state (couchDB) không khớp với blockchain là ở đâu ? Dữ liệu blockchain (transaction log) nằm ở đâu ? Có cách nào thay đổi dữ liệu world state và transaction log mà không thông qua chaincode không ?
 
 ### 1. Logic kiểm tra dữ liệu không khớp nằm ở đâu?
@@ -327,3 +328,104 @@ Giả sử hacker đủ tinh vi để sửa khối `N` và tính toán lại to�
 
 ---
 # Q: Làm sao để biết đang có bao nhiêu peer tham gia vào quá trình đồng thuận, và làm sao để thay đổi ?
+---
+# Q: Luồng query giá trị một asset khi dữ liệu bị thay đổi trên world state của tất cả các peers: GetAsset --> (1) lấy dữ liệu cache từ world state --> (2) verify dữ liệu liệu cache với transaction log --> (3) verify dữ liệu sai --> (4) lấy dữ liệu từ transaction log --> (5) trả về dữ liệu đúng. Luồng này có đúng không ? Nơi thực thi luồng này là ở đâu trong source code ?
+
+---
+# Q: Cách thay đổi chính sách chứng thực (endorsement policy) 
+
+
+**Nguyên tắc cốt lõi cần nắm:**
+
+Khi bạn lặp lại cùng một vai trò (ví dụ: `"Org1MSP.peer"`) nhiều lần bên trong một toán tử `AND` hoặc `OutOf`, Hyperledger Fabric sẽ hiểu rằng bạn đang yêu cầu các chữ ký từ các peer **riêng biệt (distinct)**. Một peer không thể ký một lần để thỏa mãn nhiều yêu cầu giống hệt nhau trong cùng một chính sách.
+
+Dựa trên nguyên tắc này, chúng ta có thể xây dựng các chính sách bạn cần.
+
+---
+
+### (1) Chỉ cần một chữ ký từ một peer bất kỳ trong tổ chức 1
+
+Đây là trường hợp đơn giản nhất.
+
+**Cú pháp:**
+
+```
+'OR("Org1MSP.peer")'
+```
+
+**Giải thích:**
+
+- `"Org1MSP.peer"`: Đại diện cho một vai trò yêu cầu chữ ký từ một peer bất kỳ thuộc `Org1MSP`.
+- `OR(...)`: Đảm bảo chỉ cần một điều kiện được thỏa mãn. Vì chỉ có một điều kiện, nên chính sách này có nghĩa là "cần một chữ ký từ một peer bất kỳ của Org1".
+
+**Ví dụ câu lệnh deploy:**
+
+```
+./network.sh deployCC -c mychannel -ccn basic -ccp ../asset-transfer-basic/chaincode-go -ccl go -ccep 'OR("Org1MSP.peer")'
+```
+
+---
+
+### (2) Cần hơn 50% chữ ký từ các peer trong tổ chức 1
+
+Với 3 peer, "hơn 50%" có nghĩa là cần ít nhất **2** chữ ký. Chúng ta sẽ sử dụng toán tử `OutOf`.
+
+**Cú pháp:**
+
+```
+	'OutOf(2, "Org1MSP.peer", "Org1MSP.peer", "Org1MSP.peer")'
+```
+
+**Giải thích:**
+
+- `OutOf(2, ...)`: Yêu cầu ít nhất **2** trong các quy tắc bên trong phải được thỏa mãn.
+- `"Org1MSP.peer", "Org1MSP.peer", "Org1MSP.peer"`: Chúng ta lặp lại vai trò này 3 lần để nói với Fabric rằng có 3 "suất" chữ ký có thể được cung cấp bởi các peer của Org1.
+- **Kết quả:** Chính sách này yêu cầu chữ ký từ **2 peer riêng biệt** trong tổng số 3 peer của Org1. Ví dụ: (peer0 và peer1), hoặc (peer0 và peer2), hoặc (peer1 và peer2) ký thì giao dịch sẽ hợp lệ.
+
+**Ví dụ câu lệnh deploy:**
+
+```
+./network.sh deployCC -c mychannel -ccn basic -ccp ../asset-transfer-basic/chaincode-go -ccl go -ccep 'OutOf(2,"Org1MSP.peer","Org1MSP.peer","Org1MSP.peer")'
+```
+
+---
+
+### (3) Cần chữ ký từ tất cả các peer trong tổ chức 1
+
+Với 3 peer, chúng ta cần cả 3 chữ ký. Chúng ta sẽ sử dụng toán tử `AND`.
+
+**Cú pháp:**
+
+```
+'AND("Org1MSP.peer", "Org1MSP.peer", "Org1MSP.peer")'
+```
+
+**Giải thích:**
+
+- `AND(...)`: Yêu cầu **tất cả** các quy tắc bên trong phải được thỏa mãn.
+- `"Org1MSP.peer", "Org1MSP.peer", "Org1MSP.peer"`: Bằng cách lặp lại vai trò này 3 lần, chúng ta đang thiết lập 3 yêu cầu riêng biệt.
+- **Kết quả:** Chính sách này yêu cầu chữ ký từ **3 peer riêng biệt** của Org1. Vì tổ chức chỉ có 3 peer, điều này có nghĩa là **tất cả các peer** phải ký.
+
+**Ví dụ câu lệnh deploy:**
+
+```
+./network.sh deployCC -c mychannel -ccn basic -ccp ../asset-transfer-basic/chaincode-go -ccl go -ccep 'AND("Org1MSP.peer", "Org1MSP.peer", "Org1MSP.peer")'
+```
+
+### Tóm tắt
+
+|Yêu cầu|Số chữ ký cần (trên 3 peer)|Cú pháp Endorsement Policy|
+|---|---|---|
+|(1) Bất kỳ 1 peer|1|`'OR("Org1MSP.peer")'`|
+|(2) Hơn 50%|2|`'OutOf(2, "Org1MSP.peer", "Org1MSP.peer", "Org1MSP.peer")'`|
+|(3) Tất cả các peer|3|`'AND("Org1MSP.peer", "Org1MSP.peer", "Org1MSP.peer")'`|
+
+Bạn chỉ cần sử dụng các chuỗi chính sách này với cờ `-ccep` khi deploy hoặc nâng cấp chaincode để áp dụng cơ chế chứng thực mong muốn.
+
+
+---
+# Q: Tại sao khi có duy nhất một peer hoạt động, transaction không thể được tạo ?
+Khi 2 trong 3 peer mất kết nối, gửi transaction bị lỗi (dùng Endorsement Policy mặc định là "MAJORITY Endorsement")
+```
+Error: rpc error: code = FailedPrecondition desc = no peers available to evaluate chaincode basic in channel mychannel
+```. How can we config this policy ?

@@ -1,0 +1,4 @@
+- [ ] Ở bước package chaincode, tại sao lại cần chạy go mod vendor ?'
+- [ ] Ở bước package chaincode, tại sao lại cần GO111MODULE=on ?
+- [ ] Tại sao deploy chaincode ở một peer vẫn có thể thực thi giao dịch ?
+- [ ] Deploy chaincode ở một peer thì có vẫn đề gì ?
