@@ -2,6 +2,7 @@
 
 source scripts/utils.sh
 
+# --- Parameter Defaults ---
 CHANNEL_NAME=${1:-"mychannel"}
 CC_NAME=${2}
 CC_SRC_PATH=${3}
@@ -15,6 +16,7 @@ DELAY=${10:-"3"}
 MAX_RETRY=${11:-"5"}
 VERBOSE=${12:-"false"}
 
+# --- Print Parameters ---
 println "executing with the following"
 println "- CHANNEL_NAME: ${C_GREEN}${CHANNEL_NAME}${C_RESET}"
 println "- CC_NAME: ${C_GREEN}${CC_NAME}${C_RESET}"
@@ -29,8 +31,8 @@ println "- DELAY: ${C_GREEN}${DELAY}${C_RESET}"
 println "- MAX_RETRY: ${C_GREEN}${MAX_RETRY}${C_RESET}"
 println "- VERBOSE: ${C_GREEN}${VERBOSE}${C_RESET}"
 
+# --- Argument Parsing for Flags ---
 INIT_REQUIRED="--init-required"
-# check if the init fcn should be called
 if [ "$CC_INIT_FCN" = "NA" ]; then
   INIT_REQUIRED=""
 fi
@@ -49,7 +51,7 @@ fi
 
 FABRIC_CFG_PATH=$PWD/../config/
 
-# import utils
+# --- Import helpers ---
 . scripts/envVar.sh
 . scripts/ccutils.sh
 
@@ -68,57 +70,61 @@ function checkPrereqs() {
 #check for prerequisites
 checkPrereqs
 
-## package the chaincode
-./scripts/packageCC.sh $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION
+# --- Main Deployment Logic ---
 
-PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
+## 1. Package the chaincode
+infoln "Packaging chaincode..."
+./scripts/packageCC.sh "$CC_NAME" "$CC_SRC_PATH" "$CC_SRC_LANGUAGE" "$CC_VERSION"
 
-## Install chaincode on peer0.org1 and peer0.org2
-infoln "Installing chaincode on all peers in Org1..."
+infoln "Calculating new chaincode package ID..."
+export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
+println "Package ID is: ${C_GREEN}${PACKAGE_ID}${C_RESET}"
+
+## 2. Install chaincode on all peers
+infoln "Installing chaincode on Org1 peers..."
 installChaincode 1 0
 installChaincode 1 1
 installChaincode 1 2
 
-#infoln "Install chaincode on peer0.org2..."
-#installChaincode 2
+infoln "Installing chaincode on Org2 peers..."
+installChaincode 2 0
+installChaincode 2 1
+installChaincode 2 2
 
 resolveSequence
 
-## query whether the chaincode is installed
-queryInstalled 1
+### query whether the chaincode is installed
+#queryInstalled 1
 
-## approve the definition for org1
+## 3. Approve the definition for each organization
+infoln "Approving chaincode definition for Org1..."
 approveForMyOrg 1
 
-## check whether the chaincode definition is ready to be committed
-## expect org1 to have approved and org2 not to
-#checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": false"
-#checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": false"
-checkCommitReadiness 1 "\"Org1MSP\": true"
+infoln "Approving chaincode definition for Org2..."
+approveForMyOrg 2
 
-## now approve also for org2
-#approveForMyOrg 2
+## 4. Check commit readiness. This is the only check needed.
+infoln "Checking if chaincode definition is ready to be committed..."
+checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
+checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
 
-## check whether the chaincode definition is ready to be committed
-## expect them both to have approved
-#checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
-#checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
+## 5. Commit the chaincode definition
+infoln "Committing chaincode definition..."
+commitChaincodeDefinition 1 2
 
-## now that we know for sure both orgs have approved, commit the definition
-#commitChaincodeDefinition 1 2
-commitChaincodeDefinition 1
-
-## query on both orgs to see that the definition committed successfully
+## 6. Query the committed chaincode definition on all orgs
+infoln "Querying committed definition on Org1..."
 queryCommitted 1
-#queryCommitted 2
+infoln "Querying committed definition on Org2..."
+queryCommitted 2
 
-## Invoke the chaincode - this does require that the chaincode have the 'initLedger'
-## method defined
-if [ "$CC_INIT_FCN" = "NA" ]; then
-  infoln "Chaincode initialization is not required"
+## 7. Initialize the chaincode if required
+if [ "$CC_INIT_FCN" != "NA" ]; then
+  infoln "Initializing chaincode..."
+  chaincodeInvokeInit 1 2
 else
-#  chaincodeInvokeInit 1 2
-  chaincodeInvokeInit 1
+  infoln "Chaincode initialization is not required."
 fi
 
+println "✅ Chaincode deployment successful."
 exit 0
