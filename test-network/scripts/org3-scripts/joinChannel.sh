@@ -5,35 +5,49 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# This script is designed to be run by addOrg3.sh as the
-# second step of the Adding an Org to a Channel tutorial.
-# It joins the org3 peers to the channel previously setup in
-# the test network tutorial.
+# This script joins all peers of Org3 to an existing channel.
+# It fetches the latest configuration block and then joins each peer.
 
+## Exit on first error
+#set -e
+
+# --- Set Defaults ---
 CHANNEL_NAME="$1"
-DELAY="$2"
-TIMEOUT="$3"
-VERBOSE="$4"
 : ${CHANNEL_NAME:="mychannel"}
-: ${DELAY:="3"}
-: ${TIMEOUT:="10"}
-: ${VERBOSE:="false"}
-COUNTER=1
+DELAY=3
 MAX_RETRY=5
+VERBOSE=false
 
-# import environment variables
-# test network home var targets to test-network folder
-# the reason we use a var here is considering with org3 specific folder
-# when invoking this for org3 as test-network/scripts/org3-scripts
-# the value is changed from default as $PWD (test-network)
-# to ${PWD}/.. to make the import works
-export TEST_NETWORK_HOME="${PWD}/.."
-. ${TEST_NETWORK_HOME}/scripts/envVar.sh
+# --- Import helpers ---
+# Get the root directory of the project to make paths robust
+ROOTDIR=$(cd "$(dirname "$0")" && pwd)
+export TEST_NETWORK_HOME="$ROOTDIR/.."
 
-# joinChannel ORG
-joinChannel() {
-  ORG=$1
-  setGlobals $ORG
+. "${TEST_NETWORK_HOME}/scripts/envVar.sh"
+. "${TEST_NETWORK_HOME}/scripts/utils.sh"
+
+infoln "Joining Org3 to channel '${CHANNEL_NAME}'"
+
+# --- 1. Fetch the latest channel config block ---
+# We need this so Org3 can learn about the channel.
+# We'll use peer0.org3 to do the fetching.
+infoln "Fetching the latest channel configuration block..."
+setGlobals 3 0
+BLOCKFILE="${TEST_NETWORK_HOME}/channel-artifacts/${CHANNEL_NAME}.block"
+
+set -x
+peer channel fetch 0 ${BLOCKFILE} -c ${CHANNEL_NAME} -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "$ORDERER_CA"
+res=$?
+{ set +x; } 2>/dev/null
+verifyResult $res "Failed to fetch latest channel config block."
+
+
+# --- 2. Join all Org3 peers to the channel ---
+# This function joins a specific peer of Org3
+joinPeer() {
+  local PEER=$1
+  infoln "Joining peer${PEER}.org3 to the channel..."
+  setGlobals 3 ${PEER}
   local rc=1
   local COUNTER=1
   ## Sometimes Join takes time, hence retry
@@ -45,32 +59,21 @@ joinChannel() {
     { set +x; } 2>/dev/null
     let rc=$res
     COUNTER=$(expr $COUNTER + 1)
-	done
-	cat log.txt
-	verifyResult $res "After $MAX_RETRY attempts, peer0.org${ORG} has failed to join channel '$CHANNEL_NAME' "
+  done
+  cat log.txt
+  verifyResult $res "After $MAX_RETRY attempts, peer${PEER}.org3 has failed to join channel '$CHANNEL_NAME' "
 }
 
-setAnchorPeer() {
-  ORG=$1
-  ${TEST_NETWORK_HOME}/scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
-}
+# Join each peer
+joinPeer 0
+joinPeer 1
+joinPeer 2
 
-setGlobals 3
-BLOCKFILE="${TEST_NETWORK_HOME}/channel-artifacts/${CHANNEL_NAME}.block"
 
-echo "Fetching channel config block from orderer..."
-set -x
-peer channel fetch 0 $BLOCKFILE -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com -c $CHANNEL_NAME --tls --cafile "$ORDERER_CA" >&log.txt
-res=$?
-{ set +x; } 2>/dev/null
-cat log.txt
-verifyResult $res "Fetching config block from orderer has failed"
-
-infoln "Joining org3 peer to the channel..."
-joinChannel 3
-
+# --- 3. Set the anchor peer for Org3 ---
 infoln "Setting anchor peer for org3..."
 setAnchorPeer 3
 
-successln "Channel '$CHANNEL_NAME' joined"
-successln "Org3 peer successfully added to network"
+
+successln "✅ Org3 successfully joined channel '${CHANNEL_NAME}'"
+exit 0
