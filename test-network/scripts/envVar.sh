@@ -61,7 +61,6 @@ setGlobals() {
     export CORE_PEER_LOCALMSPID="Org2MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org2.example.com/peers/peer${PEER}.org2.example.com/tls/ca.crt
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
-#    # This logic assumes peer0 is on 9051, peer1 is on 10051, etc.
     # peer0:8100, peer1:8120, peer2:8140
     export CORE_PEER_ADDRESS=localhost:$((8100 + PEER * 20))
 
@@ -69,8 +68,6 @@ setGlobals() {
     export CORE_PEER_LOCALMSPID="Org3MSP"
     export CORE_PEER_TLS_ROOTCERT_FILE=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org3.example.com/peers/peer${PEER}.org3.example.com/tls/ca.crt
     export CORE_PEER_MSPCONFIGPATH=${TEST_NETWORK_HOME}/organizations/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp
-#    # This logic assumes peer0 is on 11051, peer1 is on 12051, etc.
-#    export CORE_PEER_ADDRESS=localhost:$((11051 + PEER * 1000))
      # peer0:8200, peer1:8220, peer2:8240
      export CORE_PEER_ADDRESS=localhost:$((8200 + PEER * 20))
 
