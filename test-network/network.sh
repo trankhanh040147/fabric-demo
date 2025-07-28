@@ -370,6 +370,15 @@ function deployCCOrg3() {
   fi
 }
 
+## Call the script to deploy a chaincode with different paths for each org
+function deployCCWithPath() {
+  # Truyền tất cả các cờ và đối số vào kịch bản con
+  scripts/deployCCWithPath.sh "$@"
+  if [ $? -ne 0 ]; then
+    fatalln "Deploying chaincode with distinct paths failed"
+  fi
+}
+
 ## Call the script to deploy a chaincode to the channel
 function deployCCAAS() {
   scripts/deployCCAAS.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CCAAS_DOCKER_RUN $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE $CCAAS_DOCKER_RUN
