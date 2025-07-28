@@ -19,7 +19,7 @@ function printHelp() {
     println "    Used with \033[0;32mnetwork.sh prereq\033[0m:"
     println "    -i     FabricVersion (default: '2.5.13')"
     println "    -cai   Fabric CA Version (default: '1.5.15')"
-    println  
+    println
   elif [ "$USAGE" == "up" ]; then
     println "Usage: "
     println "  network.sh \033[0;32mup\033[0m [Flags]"
@@ -75,6 +75,7 @@ function printHelp() {
     println "    -ccv <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc"
     println "    -ccs <sequence>  - Chaincode definition sequence.  Must be auto (default) or an integer, 1 , 2, 3, etc"
     println "    -ccp <path>  - File path to the chaincode."
+    println "    -norgs <number> - (Optional) Number of organizations to deploy to. 2 (default) or 3."
     println "    -ccep <policy>  - (Optional) Chaincode endorsement policy using signature policy syntax. The default policy requires an endorsement from Org1 and Org2"
     println "    -cccg <collection-config>  - (Optional) File path to private data collections configuration file"
     println "    -cci <fcn name>  - (Optional) Name of chaincode initialization function. When a function is provided, the execution of init will be requested and the function will be invoked."
@@ -85,8 +86,8 @@ function printHelp() {
     println "   \033[0;32mdeployCC\033[0m -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose"
     println
     println " Examples:"
-    println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ ./ -ccl javascript"
-    println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
+    println "   network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript"
+    println "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript -norgs 3"
   elif [ "$USAGE" == "deployCCAAS" ]; then
     println "Usage: "
     println "  network.sh \033[0;32mdeployCCAAS\033[0m [Flags]"
@@ -109,7 +110,26 @@ function printHelp() {
     println
     println " Examples:"
     println "   network.sh deployCCAAS  -ccn basicj -ccp ../asset-transfer-basic/chaincode-java"
-    println "   network.sh deployCCAAS  -ccn basict -ccp ../asset-transfer-basic/chaincode-typescript -ccaasdocker false" 
+    println "   network.sh deployCCAAS  -ccn basict -ccp ../asset-transfer-basic/chaincode-typescript -ccaasdocker false"
+  elif [ "$USAGE" == "deployCCOrg3" ]; then
+    println "Usage: "
+    println "  network.sh \033[0;32mdeployCCOrg3\033[0m [Flags]"
+    println
+    println "    Flags:"
+    println "    -c <channel name> - Name of channel"
+    println "    -ccn <name> - Name of the existing chaincode"
+    println "    -ccl <language> - Programming language of the chaincode"
+    println "    -ccv <version>  - Version of the existing chaincode"
+    println "    -ccp <path>  - File path to the chaincode source code (must be identical to the deployed version)"
+    println
+    println "    -h - Print this message"
+    println
+    println " Possible Mode and flag combinations"
+    println "   \033[0;32mdeployCCOrg3\033[0m -c -ccn -ccl -ccv -ccp -verbose"
+    println
+    println " Examples:"
+    println "   network.sh deployCCOrg3 -ccn basic -ccp ../asset-transfer-basic/chaincode-go -ccl go"
+    println
   elif [ "$USAGE" == "cc" ] ; then
     println "Usage: "
     println "  network.sh cc <Mode> [Flags]"
@@ -121,7 +141,7 @@ function printHelp() {
     println "      \033[0;32mquery\033[0m - execute an query operation"
     println
     println "    Flags:"
-    println "    -org <number>     - Org number for the executing the command (1,2,etc) (default is 1)."    
+    println "    -org <number>     - Org number for the executing the command (1,2,etc) (default is 1)."
     println "    -c <channel name> - Name of channel"
     println "    -ccn <name>       - Chaincode name."
     println "    -ccl <language>   - Programming language of chaincode to deploy: go, java, javascript, typescript"
@@ -153,7 +173,8 @@ function printHelp() {
     println "      \033[0;32mup\033[0m - Bring up Fabric orderer and peer nodes. No channel is created"
     println "      \033[0;32mup createChannel\033[0m - Bring up fabric network with one channel"
     println "      \033[0;32mcreateChannel\033[0m - Create and join a channel after the network is created"
-    println "      \033[0;32mdeployCC\033[0m - Deploy a chaincode to a channel (defaults to asset-transfer-basic)"
+    println "      \033[0;32mdeployCC\033[0m - Deploy a chaincode to a channel"
+    println "      \033[0;32mdeployCCOrg3\033[0m - Install and approve an existing chaincode for Org3"
     println "      \033[0;32mcc\033[0m - chaincode functions, use \"network.sh cc -h\" for options"
     println "      \033[0;32mdown\033[0m - Bring down the network"
     println
@@ -207,21 +228,21 @@ function installPrereqs() {
 
   infoln "installing prereqs"
 
-  FILE=../install-fabric.sh     
+  FILE=../install-fabric.sh
   if [ ! -f $FILE ]; then
     curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
     cp install-fabric.sh ..
   fi
-  
+
   IMAGE_PARAMETER=""
   if [ "$IMAGETAG" != "default" ]; then
     IMAGE_PARAMETER="-f ${IMAGETAG}"
-  fi 
+  fi
 
   CA_IMAGE_PARAMETER=""
   if [ "$CA_IMAGETAG" != "default" ]; then
     CA_IMAGE_PARAMETER="-c ${CA_IMAGETAG}"
-  fi 
+  fi
 
   cd ..
   ./install-fabric.sh ${IMAGE_PARAMETER} ${CA_IMAGE_PARAMETER} docker binary

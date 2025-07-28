@@ -66,7 +66,7 @@ joinPeer() {
 
 setAnchorPeer() {
   ORG=$1
-  . scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
+  . ../scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
 }
 
 # Join each peer
