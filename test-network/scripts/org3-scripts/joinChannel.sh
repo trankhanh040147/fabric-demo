@@ -64,6 +64,11 @@ joinPeer() {
   verifyResult $res "After $MAX_RETRY attempts, peer${PEER}.org3 has failed to join channel '$CHANNEL_NAME' "
 }
 
+setAnchorPeer() {
+  ORG=$1
+  . scripts/setAnchorPeer.sh $ORG $CHANNEL_NAME
+}
+
 # Join each peer
 joinPeer 0
 joinPeer 1
