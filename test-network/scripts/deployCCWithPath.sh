@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-## Exit on first error
-#set -e
-
+# --- Source Utilities ---
 source scripts/utils.sh
 
-# --- Parameter Defaults ---
-# Các tham số này sẽ được ghi đè bởi các cờ được truyền vào
+# --- Default Parameters ---
 CHANNEL_NAME="mychannel"
 CC_NAME=""
 CC_SRC_LANGUAGE=""
@@ -15,166 +12,154 @@ CC_SEQUENCE="1"
 CC_INIT_FCN="NA"
 CC_END_POLICY="NA"
 CC_COLL_CONFIG="NA"
+DELAY="3"
+MAX_RETRY="5"
+VERBOSE="false"
 NUM_ORGS=2
-CC_SRC_PATHS=() # Mảng để lưu trữ các đường dẫn chaincode
+CC_SRC_PATHS=()
 
-# --- Parse Flags ---
-# Vòng lặp này sẽ trích xuất tất cả các tham số từ dòng lệnh
-while [[ $# -ge 1 ]] ; do
+# --- Help Function ---
+function printHelp() {
+  println "Deploy chaincode with a different source path for each organization."
+  println "Each organization will package, install, and approve its own chaincode binary."
+  println
+  println "Usage: "
+  println "  deployCCWithPath.sh [Flags]"
+  println
+  println "Flags:"
+  println "  -h                    Show this help message"
+  println "  -c <channel_name>     Name of the channel (Default: 'mychannel')"
+  println "  -ccn <chaincode_name> Name of the chaincode (Required)"
+  println "  -ccl <language>       Language of the chaincode (e.g., 'go', 'java', 'node') (Required)"
+  println "  -ccp <path>           Path to the chaincode source. Use this flag for each organization."
+  println "  -norgs <number>       Total number of organizations (Default: 2). Must match the number of -ccp flags."
+  println "  -ccv <version>        Chaincode version (Default: '1.0')"
+  println "  -ccs <sequence>       Chaincode definition sequence (Default: '1')"
+  # ... (các flag khác có thể được thêm vào đây nếu cần)
+  println
+  println "Example:"
+  println "  ./scripts/deployCCWithPath.sh -c mychannel -ccn basic -ccl go -norgs 3 -ccp ../path/org1 -ccp ../path/org2 -ccp ../path/org3"
+}
+
+
+# --- Argument Parser ---
+while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
-  -c )
-    CHANNEL_NAME="$2"
-    shift
-    ;;
-  -ccn )
-    CC_NAME="$2"
-    shift
-    ;;
-  -ccl )
-    CC_SRC_LANGUAGE="$2"
-    shift
-    ;;
-  -ccv )
-    CC_VERSION="$2"
-    shift
-    ;;
-  -ccs )
-    CC_SEQUENCE="$2"
-    shift
-    ;;
-  -ccp ) # Xử lý đặc biệt cho nhiều đường dẫn
-    CC_SRC_PATHS+=("$2")
-    shift
-    ;;
-  -ccep )
-    CC_END_POLICY="$2"
-    shift
-    ;;
-  -cccg )
-    CC_COLL_CONFIG="$2"
-    shift
-    ;;
-  -cci )
-    CC_INIT_FCN="$2"
-    shift
-    ;;
-  -norgs )
-    NUM_ORGS="$2"
-    shift
-    ;;
-  * )
-    # Bỏ qua các cờ không xác định
-    ;;
+  -h) printHelp; exit 0 ;;
+  -c) CHANNEL_NAME="$2"; shift ;;
+  -ccn) CC_NAME="$2"; shift ;;
+  -ccl) CC_SRC_LANGUAGE="$2"; shift ;;
+  -ccp) CC_SRC_PATHS+=("$2"); shift ;;
+  -norgs) NUM_ORGS="$2"; shift ;;
+  -ccv) CC_VERSION="$2"; shift ;;
+  -ccs) CC_SEQUENCE="$2"; shift ;;
+  -cci) CC_INIT_FCN="$2"; shift ;;
+  -ccep) CC_END_POLICY="$2"; shift ;;
+  -cccg) CC_COLL_CONFIG="$2"; shift ;;
+  *) errorln "Unknown flag: $key"; printHelp; exit 1 ;;
   esac
   shift
 done
 
+# --- Validate Parameters ---
+if [ -z "$CC_NAME" ] || [ -z "$CC_SRC_LANGUAGE" ] || [ ${#CC_SRC_PATHS[@]} -eq 0 ] || [ ${#CC_SRC_PATHS[@]} -ne "$NUM_ORGS" ]; then
+    errorln "Invalid arguments. Use -h for help."
+    exit 1
+fi
 
 # --- Print Parameters ---
 println "executing with the following"
 println "- CHANNEL_NAME: ${C_GREEN}${CHANNEL_NAME}${C_RESET}"
 println "- CC_NAME: ${C_GREEN}${CC_NAME}${C_RESET}"
 println "- CC_SRC_LANGUAGE: ${C_GREEN}${CC_SRC_LANGUAGE}${C_RESET}"
-println "- CC_VERSION: ${C_GREEN}${CC_VERSION}${C_RESET}"
-println "- CC_SEQUENCE: ${C_GREEN}${CC_SEQUENCE}${C_RESET}"
-println "- CC_END_POLICY: ${C_GREEN}${CC_END_POLICY}${C_RESET}"
-println "- CC_COLL_CONFIG: ${C_GREEN}${CC_COLL_CONFIG}${C_RESET}"
-println "- CC_INIT_FCN: ${C_GREEN}${CC_INIT_FCN}${C_RESET}"
 println "- NUM_ORGS: ${C_GREEN}${NUM_ORGS}${C_RESET}"
-for i in $(seq 1 $NUM_ORGS); do
-  path_index=$((i-1))
-  println "- CC_SRC_PATH_ORG${i}: ${C_GREEN}${CC_SRC_PATHS[$path_index]}${C_RESET}"
-done
+# ... (in các tham số khác nếu cần)
 
-
-# --- Argument Parsing for Flags ---
+# --- Argument Parsing for Fabric Flags ---
 INIT_REQUIRED="--init-required"
-if [ "$CC_INIT_FCN" = "NA" ]; then
-  INIT_REQUIRED=""
-fi
+[ "$CC_INIT_FCN" = "NA" ] && INIT_REQUIRED=""
+[ "$CC_END_POLICY" != "NA" ] && CC_END_POLICY="--signature-policy $CC_END_POLICY" || CC_END_POLICY=""
+[ "$CC_COLL_CONFIG" != "NA" ] && CC_COLL_CONFIG="--collections-config $CC_COLL_CONFIG" || CC_COLL_CONFIG=""
 
-if [ "$CC_END_POLICY" = "NA" ]; then
-  CC_END_POLICY=""
-else
-  CC_END_POLICY="--signature-policy $CC_END_POLICY"
-fi
-
-if [ "$CC_COLL_CONFIG" = "NA" ]; then
-  CC_COLL_CONFIG=""
-else
-  CC_COLL_CONFIG="--collections-config $CC_COLL_CONFIG"
-fi
-
-FABRIC_CFG_PATH=$PWD/../config/
+export FABRIC_CFG_PATH=$PWD/../config/
 
 # --- Import helpers ---
 . scripts/envVar.sh
 . scripts/ccutils.sh
 
-# --- Main Deployment Logic ---
+# --- Main Logic ---
 
-# Vòng lặp để đóng gói, cài đặt và phê duyệt cho từng tổ chức
-for i in $(seq 1 $NUM_ORGS); do
-  path_index=$((i-1))
-  ORG_CC_SRC_PATH=${CC_SRC_PATHS[$path_index]}
-  ORG_CC_PKG_NAME="${CC_NAME}_org${i}.tar.gz"
+# Mảng kết hợp để lưu trữ Package ID cho mỗi tổ chức
+declare -A ORG_PACKAGE_IDS
 
-  infoln "--- Processing for Org${i} ---"
-  infoln "Packaging chaincode from path: ${ORG_CC_SRC_PATH}"
-  ./scripts/packageCC.sh "$CC_NAME" "$ORG_CC_SRC_PATH" "$CC_SRC_LANGUAGE" "$CC_VERSION" "$ORG_CC_PKG_NAME"
+## 1. Package and Install Chaincode for each Organization
+for i in $(seq 1 "$NUM_ORGS"); do
+    ORG_INDEX=$((i-1))
+    CC_SRC_PATH_ORG="${CC_SRC_PATHS[$ORG_INDEX]}"
+    PACKAGE_FILE="${CC_NAME}_org${i}.tar.gz"
 
-  infoln "Calculating package ID for Org${i}..."
-  export PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid $ORG_CC_PKG_NAME)
-  println "Package ID for Org${i} is: ${C_GREEN}${PACKAGE_ID}${C_RESET}"
+    infoln "--- Processing for Org${i} ---"
+    infoln "Packaging chaincode from path: ${CC_SRC_PATH_ORG}"
 
-  infoln "Installing chaincode for Org${i}..."
-  installChaincode ${i} 0 ${ORG_CC_PKG_NAME}
-  installChaincode ${i} 1 ${ORG_CC_PKG_NAME}
-  installChaincode ${i} 2 ${ORG_CC_PKG_NAME}
+    # Tạm thời đổi tên file package mặc định để tránh ghi đè
+    ./scripts/packageCC.sh "$CC_NAME" "$CC_SRC_PATH_ORG" "$CC_SRC_LANGUAGE" "$CC_VERSION"
+    if [ $? -ne 0 ]; then
+        fatalln "Failed to package chaincode for Org${i}. Exiting."
+    fi
+    mv "${CC_NAME}.tar.gz" "$PACKAGE_FILE"
 
-  infoln "Approving chaincode definition for Org${i}..."
-  approveForMyOrg ${i}
+    infoln "Calculating Package ID for Org${i}..."
+    ORG_PACKAGE_IDS[$i]=$(peer lifecycle chaincode calculatepackageid "$PACKAGE_FILE")
+    verifyResult $? "Calculating package ID for Org${i} failed"
+    println "Package ID for Org${i} is: ${C_GREEN}${ORG_PACKAGE_IDS[$i]}${C_RESET}"
+
+    infoln "Installing chaincode on peers of Org${i}..."
+    # Giả sử mỗi org có 3 peer: 0, 1, 2. Chỉnh sửa nếu cần.
+    installChaincode "$i" 0 "$PACKAGE_FILE"
+    installChaincode "$i" 1 "$PACKAGE_FILE"
+    installChaincode "$i" 2 "$PACKAGE_FILE"
 done
 
-# --- Các bước commit và query chung cho cả channel ---
+## 2. Resolve sequence (only needs to be done once)
+resolveSequence
 
-## Check commit readiness and Commit the chaincode definition
-if [ "$NUM_ORGS" -ge 3 ]; then
-  infoln "Checking if chaincode definition is ready for 3 Orgs..."
-  checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true" "\"Org3MSP\": true"
-  checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true" "\"Org3MSP\": true"
-  checkCommitReadiness 3 "\"Org1MSP\": true" "\"Org2MSP\": true" "\"Org3MSP\": true"
-
-  infoln "Committing chaincode definition for 3 Orgs..."
-  commitChaincodeDefinition 1 2 3
-else
-  infoln "Checking if chaincode definition is ready for 2 Orgs..."
-  checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
-  checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
-
-  infoln "Committing chaincode definition for 2 Orgs..."
-  commitChaincodeDefinition 1 2
-fi
-
-
-## Query the committed chaincode definition on all orgs
-infoln "Querying committed definition on all Orgs..."
-for i in $(seq 1 $NUM_ORGS); do
-  queryCommitted ${i}
+## 3. Approve Chaincode Definition for each Organization
+for i in $(seq 1 "$NUM_ORGS"); do
+    infoln "Approving chaincode definition for Org${i}..."
+    export PACKAGE_ID=${ORG_PACKAGE_IDS[$i]} # Đặt Package ID đúng cho tổ chức hiện tại
+    approveForMyOrg "$i"
 done
 
-## Initialize the chaincode if required
+## 4. Check Commit Readiness and Commit
+infoln "Building dynamic arguments for commit readiness check..."
+CHECK_COMMIT_READINESS_ARGS=()
+for i in $(seq 1 "$NUM_ORGS"); do
+    CHECK_COMMIT_READINESS_ARGS+=("\"Org${i}MSP\": true")
+done
+
+infoln "Checking if chaincode definition is ready for ${NUM_ORGS} Orgs..."
+for i in $(seq 1 "$NUM_ORGS"); do
+    checkCommitReadiness "$i" "${CHECK_COMMIT_READINESS_ARGS[@]}"
+done
+
+COMMIT_ARGS=$(seq 1 "$NUM_ORGS")
+infoln "Committing chaincode definition for ${NUM_ORGS} Orgs..."
+commitChaincodeDefinition ${COMMIT_ARGS}
+
+## 5. Query Committed Definition
+for i in $(seq 1 "$NUM_ORGS"); do
+    infoln "Querying committed definition on Org${i}..."
+    queryCommitted "$i"
+done
+
+## 6. Initialize (if required)
 if [ "$CC_INIT_FCN" != "NA" ]; then
-  infoln "Initializing chaincode..."
-  if [ "$NUM_ORGS" -ge 3 ]; then
-    chaincodeInvokeInit 1 2 3
-  else
-    chaincodeInvokeInit 1 2
-  fi
+    infoln "Initializing chaincode..."
+    chaincodeInvokeInit ${COMMIT_ARGS}
 else
-  infoln "Chaincode initialization is not required."
+    infoln "Chaincode initialization is not required."
 fi
 
-println "✅ Chaincode deployment with distinct paths successful."
+println "✅ Chaincode deployment successful with organization-specific binaries."
 exit 0
