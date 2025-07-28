@@ -1,15 +1,40 @@
 #!/usr/bin/env bash
 
-# installChaincode ORG PEER
+# installChaincode ORG PEER [PACKAGE_FILE]
+# Chấp nhận một tham số thứ 3 tùy chọn là tên file package.
+# Nếu không được cung cấp, nó sẽ sử dụng tên mặc định là ${CC_NAME}.tar.gz.
 function installChaincode() {
   ORG=$1
   PEER=$2
+
+  # Kiểm tra xem tham số PACKAGE_FILE có được cung cấp không
+  if [ -z "$3" ]; then
+    PACKAGE_FILE="${CC_NAME}.tar.gz"
+    infoln "Package file not provided, using default: ${PACKAGE_FILE}"
+  else
+    PACKAGE_FILE="$3"
+    infoln "Using provided package file: ${PACKAGE_FILE}"
+  fi
+
+  # Kiểm tra xem file package có tồn tại không
+  if [ ! -f "$PACKAGE_FILE" ]; then
+    fatalln "Chaincode package file ${PACKAGE_FILE} not found."
+  fi
+
   setGlobals $ORG $PEER
+
+  local TEMP_PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid "$PACKAGE_FILE")
+  verifyResult $? "Failed to calculate package ID from ${PACKAGE_FILE}"
+
   set -x
-  peer lifecycle chaincode queryinstalled --output json | jq -r 'try (.installed_chaincodes[].package_id)' | grep ^${PACKAGE_ID}$ >&log.txt
+  # Kiểm tra xem package ID đã được cài đặt chưa
+  peer lifecycle chaincode queryinstalled --output json | jq -r 'try (.installed_chaincodes[].package_id)' | grep "^${TEMP_PACKAGE_ID}$" >&log.txt
   if test $? -ne 0; then
-    peer lifecycle chaincode install ${CC_NAME}.tar.gz >&log.txt
+    peer lifecycle chaincode install "$PACKAGE_FILE" >&log.txt
     res=$?
+  else
+    infoln "Chaincode package ${TEMP_PACKAGE_ID} is already installed on peer${PEER}.org${ORG}."
+    res=0
   fi
   { set +x; } 2>/dev/null
   cat log.txt

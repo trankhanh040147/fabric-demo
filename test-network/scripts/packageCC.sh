@@ -14,7 +14,9 @@ println "- CC_SRC_PATH: ${C_GREEN}${CC_SRC_PATH}${C_RESET}"
 println "- CC_SRC_LANGUAGE: ${C_GREEN}${CC_SRC_LANGUAGE}${C_RESET}"
 println "- CC_VERSION: ${C_GREEN}${CC_VERSION}${C_RESET}"
 
-FABRIC_CFG_PATH=$PWD/../config/
+# >>>>> SỬA ĐỔI QUAN TRỌNG <<<<<
+# Export a biến môi trường để các tiến trình con (như 'peer') có thể thấy nó
+export FABRIC_CFG_PATH=$PWD/../config/
 
 #User has not provided a name
 if [ -z "$CC_NAME" ] || [ "$CC_NAME" = "NA" ]; then
@@ -90,7 +92,8 @@ packageChaincode() {
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt
-  PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
+  # Dòng này không cần thiết vì packageID sẽ được tính ở script cha
+  # PACKAGE_ID=$(peer lifecycle chaincode calculatepackageid ${CC_NAME}.tar.gz)
   verifyResult $res "Chaincode packaging has failed"
   successln "Chaincode is packaged"
 }

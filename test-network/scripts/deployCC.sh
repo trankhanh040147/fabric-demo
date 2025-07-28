@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+## Exit on first error
+#set -e
+
 source scripts/utils.sh
 
 # --- Parameter Defaults ---
@@ -15,6 +18,8 @@ CC_COLL_CONFIG=${9:-"NA"}
 DELAY=${10:-"3"}
 MAX_RETRY=${11:-"5"}
 VERBOSE=${12:-"false"}
+# Thêm tham số mới để xác định số lượng tổ chức, mặc định là 2
+NUM_ORGS=${13:-2}
 
 # --- Print Parameters ---
 println "executing with the following"
@@ -30,6 +35,7 @@ println "- CC_INIT_FCN: ${C_GREEN}${CC_INIT_FCN}${C_RESET}"
 println "- DELAY: ${C_GREEN}${DELAY}${C_RESET}"
 println "- MAX_RETRY: ${C_GREEN}${MAX_RETRY}${C_RESET}"
 println "- VERBOSE: ${C_GREEN}${VERBOSE}${C_RESET}"
+println "- NUM_ORGS: ${C_GREEN}${NUM_ORGS}${C_RESET}" # In ra số lượng org
 
 # --- Argument Parsing for Flags ---
 INIT_REQUIRED="--init-required"
@@ -91,10 +97,15 @@ installChaincode 2 0
 installChaincode 2 1
 installChaincode 2 2
 
-resolveSequence
+# Chỉ cài đặt cho Org3 nếu số lượng tổ chức là 3
+if [ "$NUM_ORGS" -ge 3 ]; then
+  infoln "Installing chaincode on Org3 peers..."
+  installChaincode 3 0
+  installChaincode 3 1
+  installChaincode 3 2
+fi
 
-### query whether the chaincode is installed
-#queryInstalled 1
+resolveSequence
 
 ## 3. Approve the definition for each organization
 infoln "Approving chaincode definition for Org1..."
@@ -103,25 +114,54 @@ approveForMyOrg 1
 infoln "Approving chaincode definition for Org2..."
 approveForMyOrg 2
 
-## 4. Check commit readiness. This is the only check needed.
-infoln "Checking if chaincode definition is ready to be committed..."
-checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
-checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
+# Chỉ approve cho Org3 nếu số lượng tổ chức là 3
+if [ "$NUM_ORGS" -ge 3 ]; then
+  infoln "Approving chaincode definition for Org3..."
+  approveForMyOrg 3
+fi
 
-## 5. Commit the chaincode definition
-infoln "Committing chaincode definition..."
-commitChaincodeDefinition 1 2
 
-## 6. Query the committed chaincode definition on all orgs
+## 4. Check commit readiness and Commit the chaincode definition
+if [ "$NUM_ORGS" -ge 3 ]; then
+  # Logic cho 3 tổ chức
+  infoln "Checking if chaincode definition is ready for 3 Orgs..."
+  checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true" "\"Org3MSP\": true"
+  checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true" "\"Org3MSP\": true"
+  checkCommitReadiness 3 "\"Org1MSP\": true" "\"Org2MSP\": true" "\"Org3MSP\": true"
+
+  infoln "Committing chaincode definition for 3 Orgs..."
+  commitChaincodeDefinition 1 2 3
+else
+  # Logic cho 2 tổ chức (mặc định)
+  infoln "Checking if chaincode definition is ready for 2 Orgs..."
+  checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
+  checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
+
+  infoln "Committing chaincode definition for 2 Orgs..."
+  commitChaincodeDefinition 1 2
+fi
+
+
+## 5. Query the committed chaincode definition on all orgs
 infoln "Querying committed definition on Org1..."
 queryCommitted 1
 infoln "Querying committed definition on Org2..."
 queryCommitted 2
 
-## 7. Initialize the chaincode if required
+# Chỉ query cho Org3 nếu số lượng tổ chức là 3
+if [ "$NUM_ORGS" -ge 3 ]; then
+  infoln "Querying committed definition on Org3..."
+  queryCommitted 3
+fi
+
+## 6. Initialize the chaincode if required
 if [ "$CC_INIT_FCN" != "NA" ]; then
   infoln "Initializing chaincode..."
-  chaincodeInvokeInit 1 2
+  if [ "$NUM_ORGS" -ge 3 ]; then
+    chaincodeInvokeInit 1 2 3
+  else
+    chaincodeInvokeInit 1 2
+  fi
 else
   infoln "Chaincode initialization is not required."
 fi

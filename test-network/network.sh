@@ -354,10 +354,28 @@ function createChannel() {
 
 ## Call the script to deploy a chaincode to the channel
 function deployCC() {
-  scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE
+  scripts/deployCC.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION $CC_SEQUENCE $CC_INIT_FCN $CC_END_POLICY $CC_COLL_CONFIG $CLI_DELAY $MAX_RETRY $VERBOSE $NUM_ORGS
 
   if [ $? -ne 0 ]; then
     fatalln "Deploying chaincode failed"
+  fi
+}
+
+## Call the script to deploy a chaincode to org3
+function deployCCOrg3() {
+  scripts/org3-scripts/deployCCOrg3.sh $CHANNEL_NAME $CC_NAME $CC_SRC_PATH $CC_SRC_LANGUAGE $CC_VERSION
+
+  if [ $? -ne 0 ]; then
+    fatalln "Deploying chaincode for Org3 failed"
+  fi
+}
+
+## Call the script to deploy a chaincode with different paths for each org
+function deployCCWithPath() {
+  # Truyền tất cả các cờ và đối số vào kịch bản con
+  scripts/deployCCWithPath.sh "$@"
+  if [ $? -ne 0 ]; then
+    fatalln "Deploying chaincode with distinct paths failed"
   fi
 }
 
@@ -600,6 +618,10 @@ while [[ $# -ge 1 ]] ; do
     CC_INIT_FCN="$2"
     shift
     ;;
+  -norgs )
+    NUM_ORGS="$2"
+    shift
+    ;;
   -ccaasdocker )
     CCAAS_DOCKER_RUN="$2"
     shift
@@ -669,6 +691,9 @@ elif [ "$MODE" == "restart" ]; then
 elif [ "$MODE" == "deployCC" ]; then
   infoln "deploying chaincode on channel '${CHANNEL_NAME}'"
   deployCC
+elif [ "$MODE" == "deployCCOrg3" ]; then
+  infoln "deploying chaincode on channel '${CHANNEL_NAME}' for Org3"
+  deployCCOrg3
 elif [ "$MODE" == "deployCCAAS" ]; then
   infoln "deploying chaincode-as-a-service on channel '${CHANNEL_NAME}'"
   deployCCAAS

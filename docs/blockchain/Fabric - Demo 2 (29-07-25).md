@@ -1,3 +1,5 @@
+# Q&A self
+- [ ] Làm sao để kết đến mạng bằng CCP ?
 # Q&A lần 1
 1. Trong chaincode, có thể sử dụng thư viện ngoài không ?
 2. Trường hợp xóa asset trên world state của một peer, update lại dữ liệu thì sao ?
@@ -13,6 +15,26 @@
 # Q&A lần 2 (cho present buổi tiếp theo)
 A. DEPLOY NHIỀU TỔ CHỨC:
 1. Deploy với 3 tổ chức (mỗi tổ chức 3 peers) và chỉnh sửa cơ chế approve chaincode (ví dụ: cần 2 trong 3 tổ chức approve chaincode)
+ - [x] Quy trình tạo tổ chức thứ 3 và tham gia vào mạng: 
+    - Tạo tài nguyên cho tổ chức thứ 3
+	    - chứng chỉ: chạy commands : `cryptogen generate --config=org3-crypto.yaml --output="../organizations"`
+	    - CCP
+    - Cập nhật lại config của channel (Cập nhật ntn ?)
+- [x] Khi tổ chức 3 tham gia vào channel, tổ chức 3 không có quyền endorse, tại sao ?
+      --> do chaincode policy được định nghĩa trước đó chỉ dành cho Org1 và Org2, để org3 có thể tham gia endorse transaction thì chaincode phải được upgrade
+- [x] Nếu tất cả tổ chức 2 bị mất kết nối, thì chuyện gì sẽ xảy ra ?
+      --> Không thể endorse transaction vì không đủ số phiếu (2 trong 3)
+- [x] deploy chaincode trên 3 tổ chức (dùng -norgs 3)
+- [x] Khi các peers của tổ chức 3 tham gia vào mạng, nó không được cài sẵn các chaincode đã có trên channel, phải làm sao để cài được các chaincode đã có ?
+	-  **Cách 1**: cài đặt và approve chaincode đã có sẵn (sau khi cài đặt chaincode lên các peers của org3, org3 có thể tham gia vào quá trình endorse) 
+	`./network.sh deployCCOrg3 -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go`
+
+	- **Cách 2**: nâng cấp chaincode --> bước này sẽ cài đặt chaincode trên cả 3 orgs, đồng thời cập nhật lại policy tương ứng (tức Org3 có thể tham gia ký):
+  `./network.sh deployCCOrg3 -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go`
+  
+- [x] Cách xóa một chaincode đã có sẵn ?
+	--> Không thể xóa một chaincode hoàn toàn ra khỏi channel, chỉ có thể xóa các container chạy chaincode đó. Trong Fabric, **không thể "xóa" hoàn toàn** một chaincode đã được commit ra khỏi lịch sử của channel để thỏa mãn tính bất biến của blockchain
+	- [ ] Nếu xóa hết tất cả chaincode thì sao ?
 
 B. CHÍNH SÁCH ĐỒNG THUẬN:
 1. Cách để phân quyền chỉ cho các tổ chức có thể gọi các hàm trong chaincode (vd: tổ chức 1 có thể gọi hàm A, B, tổ chức 2,3 có thể gọi hàm B, C)?
