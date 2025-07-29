@@ -125,8 +125,20 @@ docker stop $(docker ps -q --filter "name=dev-peer") && docker rm $(docker ps -a
 ---
 # Add ORG 3 
 
-**Nâng cấp chaincode definition**
+---
 
-### DeployCC với 3 tổ chức 
+# CCEP
+
+**2 trong 3 peers của tổ chức 1**
+```
+"OutOf(2,'Org1MSP.peer','Org1MSP.peer','Org1MSP.peer')"
+```
+
+**Tổ chức 1 hoặc cả tổ chức 2 và 3**
+```
+"OR('Org1MSP.peer',AND('Org2MSP.peer','Org3MSP.peer'))"
+```
+**Tổ chức 1 hoặc 2 trong 3 tổ chức**
 ```bash
+"OR('Org1MSP.peer',OutOf(2,'Org1MSP.peer','Org2MSP.peer','Org3MSP.peer'))"
 ```

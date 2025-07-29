@@ -33,18 +33,25 @@ A. DEPLOY NHIỀU TỔ CHỨC:
 	--> Không thể xóa một chaincode hoàn toàn ra khỏi channel, chỉ có thể xóa các container chạy chaincode đó. Trong Fabric, **không thể "xóa" hoàn toàn** một chaincode đã được commit ra khỏi lịch sử của channel để thỏa mãn tính bất biến của blockchain
 	- [x] Nếu xóa hết tất cả chaincode thì sao ?
 	--> Peer sẽ tự động restore lại chaincode
-	- [ ] Làm cái nào để disable, remove một chaincode đang hoạt động ?
-
+	- [x] Làm cái nào để disable, remove một chaincode đang hoạt động ?
+	      - xóa container đang chạy 
+	      - xóa file system 
+	      - xóa image
+	https://learn.microsoft.com/en-us/answers/questions/97249/how-to-remove-old-chaincode-containers-and-chainco
 B. CHÍNH SÁCH ĐỒNG THUẬN:
 1. Cách để phân quyền chỉ cho các tổ chức có thể gọi các hàm trong chaincode (vd: tổ chức 1 có thể gọi hàm A, B, tổ chức 2,3 có thể gọi hàm B, C)?
-- [ ] Thử nghiệm deploy một chaincode với 3 source code khác nhau
+- [x] Thử nghiệm deploy một chaincode với 3 source code khác nhau
+- Khi 2 chaincode có cùng một hàm CreateAsset, nhưng logic của 2 hàm khác nhau thì chuyện gì sẽ xảy ra khi thực thi CreateAsset ? --> gặp lỗi mismatch write value
+- Khi policy là **OR(Org1, OutOf(2, Org1,Org2,Org3))**, và chỉ có tổ chức 1 có quyền CreateAsset, thì có thể thực thi CreateAsset hay không ? 
+  --> Tổ chức 1 có thể thực thi, còn tổ chức 2 thì ko
 
 C. CƠ CHẾ MANUAL ĐỂ ENDORSE VÀ COMMIT TRANSACTION  
 1. Có thể cho phép endorse một transaction bằng cách thủ công?
 - [ ] set up các dịch vụ cho phép:
-	- [ ] client tạo một proposal và trả về transaction id
+	- [x] client tạo một proposal và trả về transaction id
 	- [ ] peer endorse một transaction bằng transaction id đó (mỗi peer = 1 dịch vụ api)
-
+	- [ ] test lấy cái events bằng cách gọi NewSignedChaincodeEventsRequest
+	
 D. CƠ CHẾ PHỤC HỒI:
 1. Tại sao khi thay đổi dữ liệu World State thì GetAllAssets lại trả về dữ liệu bị sửa đổi (dữ liệu lấy trực tiếp từ World State) còn khi lấy dữ liệu bị thay đổi bằng ReadAsset thì lại có thể lấy được dữ liệu gốc ?
 2. Cách để phục hồi peer khi bị xóa blockchain (transaction log) ?
