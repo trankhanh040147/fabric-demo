@@ -10,7 +10,7 @@
 ```
 **DeployCCWithPaths**
 ```bash
-./network.sh deployCCWithPath -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go-org1 -ccp ../asset-transfer-basic/chaincode-go-org2 -ccp ../asset-transfer-basic/chaincode-go-org3 -norgs 3
+./scripts/deployCCWithPath.sh -c mychannel -ccn basic -ccl go -norgs 3 -ccp ../asset-transfer-basic/chaincode-go-org1 -ccp ../asset-transfer-basic/chaincode-go-org2 -ccp ../asset-transfer-basic/chaincode-go-org3
 ```
 
 **DeployCC3Org (chỉ cho org3)**

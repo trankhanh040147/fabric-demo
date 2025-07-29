@@ -28,19 +28,22 @@ A. DEPLOY NHIỀU TỔ CHỨC:
 - [x] Khi các peers của tổ chức 3 tham gia vào mạng, nó không được cài sẵn các chaincode đã có trên channel, phải làm sao để cài được các chaincode đã có ?
 	-  **Cách 1**: cài đặt và approve chaincode đã có sẵn (sau khi cài đặt chaincode lên các peers của org3, org3 có thể tham gia vào quá trình endorse) 
 	`./network.sh deployCCOrg3 -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go`
-
-	- **Cách 2**: nâng cấp chaincode --> bước này sẽ cài đặt chaincode trên cả 3 orgs, đồng thời cập nhật lại policy tương ứng (tức Org3 có thể tham gia ký):
-  `./network.sh deployCCOrg3 -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go`
   
 - [x] Cách xóa một chaincode đã có sẵn ?
 	--> Không thể xóa một chaincode hoàn toàn ra khỏi channel, chỉ có thể xóa các container chạy chaincode đó. Trong Fabric, **không thể "xóa" hoàn toàn** một chaincode đã được commit ra khỏi lịch sử của channel để thỏa mãn tính bất biến của blockchain
-	- [ ] Nếu xóa hết tất cả chaincode thì sao ?
+	- [x] Nếu xóa hết tất cả chaincode thì sao ?
+	--> Peer sẽ tự động restore lại chaincode
+	- [ ] Làm cái nào để disable, remove một chaincode đang hoạt động ?
 
 B. CHÍNH SÁCH ĐỒNG THUẬN:
 1. Cách để phân quyền chỉ cho các tổ chức có thể gọi các hàm trong chaincode (vd: tổ chức 1 có thể gọi hàm A, B, tổ chức 2,3 có thể gọi hàm B, C)?
+- [ ] Thử nghiệm deploy một chaincode với 3 source code khác nhau
 
 C. CƠ CHẾ MANUAL ĐỂ ENDORSE VÀ COMMIT TRANSACTION  
 1. Có thể cho phép endorse một transaction bằng cách thủ công?
+- [ ] set up các dịch vụ cho phép:
+	- [ ] client tạo một proposal và trả về transaction id
+	- [ ] peer endorse một transaction bằng transaction id đó (mỗi peer = 1 dịch vụ api)
 
 D. CƠ CHẾ PHỤC HỒI:
 1. Tại sao khi thay đổi dữ liệu World State thì GetAllAssets lại trả về dữ liệu bị sửa đổi (dữ liệu lấy trực tiếp từ World State) còn khi lấy dữ liệu bị thay đổi bằng ReadAsset thì lại có thể lấy được dữ liệu gốc ?
