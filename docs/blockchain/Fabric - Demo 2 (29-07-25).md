@@ -56,3 +56,24 @@ D. CƠ CHẾ PHỤC HỒI:
 1. Tại sao khi thay đổi dữ liệu World State thì GetAllAssets lại trả về dữ liệu bị sửa đổi (dữ liệu lấy trực tiếp từ World State) còn khi lấy dữ liệu bị thay đổi bằng ReadAsset thì lại có thể lấy được dữ liệu gốc ?
 2. Cách để phục hồi peer khi bị xóa blockchain (transaction log) ?
 3. Nếu sửa dữ liệu trên blockchain của một peer, thì chuyện gì xảy ra ? Làm sao để phục hồi ? 
+
+---
+## DEMO
+### DEPLOY NHIỀU TỔ CHỨC 
+- Kịch bản deploy 3 tổ chức là: Ban đầu chỉ có 2 tổ chức nắm giữ chaincode, sau đó tổ chức thứ 3 muốn tham gia vào mạng
+- Deploy 2 tổ chức, sau đó chạy chaincode để cho thấy quá trình endorse diễn ra ở 2 org như thế nào ?
+- Khi DeployCC trên 2 tổ chức mà không quy định policy chứng thực, nó sẽ mặc định dùng chính "MAJORITY" tức có nghĩa là cả 2 tổ chức phải chứng thực giao dịch (một peer mỗi tổ chức)
+- Thay đổi policy và test lại: 
+	- Chỉ tổ chức 1 endorse (50% peer của tổ chức 1)
+	- 50% peer của tổ chức 1 và 50% peer của tổ chức 2
+	- Thay đổi lại policy thành MAJORITY để test xem tổ chức 3 có được quyền endorse ko ? 
+- Deploy tổ chức 3 vào mạng, sẽ đi qua các bước: 
+	- Tương tự như quá trình deploy 2 tổ chức, thì tổ chức 3 cũng phải có file org3-crypto.yaml để generate ra số certs của các peers và user
+	- Tạo các file compose cho 3 peers và 3 db
+	- Tạo một config transaction để ghi nhận việc thêm org3 vào channel (nếu không ghi transaction vào thì sao ?)
+- Sau khi deploy tổ chức 3 vào mạng, thì tổ chức 3 sẽ có thể:
+	- Thực hiện query transaction 
+	- Thực hiện invoke transaction để tạo, update asset
+---
+### Trả lời câu hỏi
+1. Con peer nào sẽ làm boootstrap cho các peer trong một tổ chức ?

@@ -157,21 +157,23 @@ function addOrg3 () {
 
   infoln "Bringing up Org3 peer"
   Org3Up
+}
 
-  # Create the configuration transaction needed to add
-  # Org3 to the network
-  infoln "Generating and submitting config tx to add Org3"
-  export FABRIC_CFG_PATH=${PWD}/../../config
-  . ../scripts/org3-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
-  if [ $? -ne 0 ]; then
-    fatalln "ERROR !!!! Unable to create config tx"
-  fi
+function joinChannel () {
+    # Create the configuration transaction needed to add
+    # Org3 to the network
+    infoln "Generating and submitting config tx to add Org3"
+    export FABRIC_CFG_PATH=${PWD}/../../config
+    . ../scripts/org3-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+    if [ $? -ne 0 ]; then
+      fatalln "ERROR !!!! Unable to create config tx"
+    fi
 
-  infoln "Joining Org3 peers to network"
-  . ../scripts/org3-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
-  if [ $? -ne 0 ]; then
-    fatalln "ERROR !!!! Unable to join Org3 peers to network"
-  fi
+    infoln "Joining Org3 peers to network"
+    . ../scripts/org3-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+    if [ $? -ne 0 ]; then
+      fatalln "ERROR !!!! Unable to join Org3 peers to network"
+    fi
 }
 
 # Tear down running network
@@ -265,6 +267,8 @@ elif [ "$MODE" == "down" ]; then
   EXPMODE="Stopping network"
 elif [ "$MODE" == "generate" ]; then
   EXPMODE="Generating certs and organization definition for Org3"
+elif [ "$MODE" == "joinChannel" ]; then
+  EXPMODE="Join peers to channel '${CHANNEL_NAME}' with '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds"
 else
   printHelp
   exit 1
@@ -278,6 +282,8 @@ elif [ "${MODE}" == "down" ]; then ## Clear the network
 elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
   generateOrg3
   generateOrg3Definition
+elif [ "${MODE}" == "joinChannel" ]; then ## Generate Artifacts
+  joinChannel
 else
   printHelp
   exit 1

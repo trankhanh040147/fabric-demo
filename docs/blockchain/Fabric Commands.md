@@ -4,6 +4,16 @@
 ./network.sh deployCC -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go
 ```
 
+**DeployCC (50% Org1)**
+```bash
+./network.sh deployCC -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go -ccep "OutOf(2,'Org1MSP.peer','Org1MSP.peer','Org1MSP.peer')"
+```
+
+**DeployCC (50% Org1 & 50% Org2)**
+```bash
+./network.sh deployCC -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go -ccep "AND(OutOf(2,'Org1MSP.peer','Org1MSP.peer','Org1MSP.peer'),OutOf(2,'Org2MSP.peer','Org2MSP.peer','Org2MSP.peer'))"
+```
+
 **DeployCC (3 orgs)**
 ```bash
 ./network.sh deployCC -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go -norgs 3
