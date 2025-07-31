@@ -74,6 +74,11 @@ D. CƠ CHẾ PHỤC HỒI:
 - Sau khi deploy tổ chức 3 vào mạng, thì tổ chức 3 sẽ có thể:
 	- Thực hiện query transaction 
 	- Thực hiện invoke transaction để tạo, update asset
+	- Lúc này các peers trong tổ chức 3 chưa thể endorse transaction, nếu tổ chức 1 và 2 tắt các peers thì ko thể thực thi chaincode
+- Deploy chaincode cho tổ chức 3:
+	- Sau đó tổ chức 3 có thể endorse các giao dịch
+	- Lúc này tổ chức 3 có thể thực hiện cái giao dịch một cách bình thường
 ---
-### Trả lời câu hỏi
+
 1. Con peer nào sẽ làm boootstrap cho các peer trong một tổ chức ?
+---

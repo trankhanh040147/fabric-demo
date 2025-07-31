@@ -27,8 +27,6 @@ Mục đích của chaincode
 - **Mục đích:** Tạo ra một tệp nén duy nhất (thường có định dạng `.tar.gz`) chứa tất cả mã nguồn và các tệp phụ thuộc cần thiết.
     
 - **Ai thực hiện:** Bước này có thể được thực hiện bởi **một tổ chức duy nhất** rồi chia sẻ cho các bên khác, hoặc **mỗi tổ chức** có thể tự đóng gói để đảm bảo tính toàn vẹn của mã nguồn mà họ sẽ chạy.
-    
-
 #### Bước 2: Cài đặt Chaincode (Install)
 
 Tiếp theo, gói chaincode này phải được **cài đặt** lên các **peer**.

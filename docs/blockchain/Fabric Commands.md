@@ -23,10 +23,19 @@
 ./scripts/deployCCWithPath.sh -c mychannel -ccn basic -ccl go -norgs 3 -ccp ../asset-transfer-basic/chaincode-go-org1 -ccp ../asset-transfer-basic/chaincode-go-org2 -ccp ../asset-transfer-basic/chaincode-go-org3
 ```
 
-**DeployCC3Org (chỉ cho org3)**
+**DeployCC3Org (deployCC cho Org3)**
 ```
 ./network.sh deployCCOrg3 -c mychannel -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go
 ```
+
+**Copy file transaction log**
+```bash
+docker cp blockfile_000000 peer0.org1.example.com:/var/hyperledger/production/ledgersData/chains/chains/mychannel/
+```
+```bash
+docker cp peer1.org1.example.com:/var/hyperledger/production/ledgersData/chains/chains/mychannel/blockfile_000000 .
+```
+
 ---
 # peer lifecycle 
 
@@ -148,6 +157,7 @@ docker stop $(docker ps -q --filter "name=dev-peer") && docker rm $(docker ps -a
 ```
 "OR('Org1MSP.peer',AND('Org2MSP.peer','Org3MSP.peer'))"
 ```
+
 **Tổ chức 1 hoặc 2 trong 3 tổ chức**
 ```bash
 "OR('Org1MSP.peer',OutOf(2,'Org1MSP.peer','Org2MSP.peer','Org3MSP.peer'))"
