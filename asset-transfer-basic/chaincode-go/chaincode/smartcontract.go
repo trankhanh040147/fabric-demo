@@ -193,3 +193,27 @@ func (s *SmartContract) GetAllAssets(ctx contractapi.TransactionContextInterface
 
 	return assets, nil
 }
+
+// IncreaseSize increases asset size by sizeAmount value
+func (s *SmartContract) IncreaseSize(ctx contractapi.TransactionContextInterface, id string, sizeAmount int) error {
+	assetJSON, err := ctx.GetStub().GetState(id)
+	if err != nil {
+		return fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if assetJSON == nil {
+		return fmt.Errorf("the asset %s does not exist", id)
+	}
+
+	var asset Asset
+	if err = json.Unmarshal(assetJSON, &asset); err != nil {
+		return err
+	}
+
+	asset.Size += sizeAmount
+	updateAssetJSON, err := json.Marshal(asset)
+	if err != nil {
+		return err
+	}
+
+	return ctx.GetStub().PutState(id, updateAssetJSON)
+}
