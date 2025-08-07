@@ -1,0 +1,137 @@
+name: "asset-transfer-basic-network"
+version: "1.0"
+
+client:
+  organization: Org1
+  logging:
+    level: info
+  cryptoconfig:
+    path: ../../test-network/organizations
+
+  credentialStore:
+    path: "/tmp/asset-transfer-basic-credential-store"
+    cryptoStore:
+      path: /tmp/asset-transfer-basic-crypto-store
+
+  BCCSP:
+    security:
+      enabled: true
+      default:
+        provider: "SW"
+      hashAlgorithm: "SHA2"
+      softVerify: true
+      level: 256
+
+channels:
+  mychannel:
+    peers:
+      # Define all peers that are part of the channel
+      peer0.org1.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+      peer1.org1.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+      peer2.org1.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+      peer0.org2.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+      peer1.org2.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+      peer2.org2.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+organizations:
+  Org1:
+    mspid: Org1MSP
+    cryptoPath: peerOrganizations/org1.example.com/users/{username}@org1.example.com/msp
+    peers:
+      - peer0.org1.example.com
+      - peer1.org1.example.com
+      - peer2.org1.example.com
+    certificateAuthorities:
+      - ca.org1.example.com
+
+  Org2:
+    mspid: Org2MSP
+    cryptoPath: peerOrganizations/org2.example.com/users/{username}@org2.example.com/msp
+    peers:
+      - peer0.org2.example.com
+      - peer1.org2.example.com
+      - peer2.org2.example.com
+    certificateAuthorities:
+      - ca.org2.example.com
+
+orderers:
+  orderer.example.com:
+    url: dns:///localhost:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.example.com
+    tlsCACerts:
+      path: ../../test-network/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+
+peers:
+  # Org1 Peers
+  peer0.org1.example.com:
+    url: dns:///localhost:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.example.com
+    tlsCACerts:
+      path: ../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+  peer1.org1.example.com:
+    url: dns:///localhost:9051
+    grpcOptions:
+      ssl-target-name-override: peer1.org1.example.com
+    tlsCACerts:
+      path: ../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/tls/ca.crt
+  peer2.org1.example.com:
+    url: dns:///localhost:9151
+    grpcOptions:
+      ssl-target-name-override: peer2.org1.example.com
+    tlsCACerts:
+      path: ../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer2.org1.example.com/tls/ca.crt
+
+  # Org2 Peers
+  peer0.org2.example.com:
+    url: dns:///localhost:8100
+    grpcOptions:
+      ssl-target-name-override: peer0.org2.example.com
+    tlsCACerts:
+      path: ../../test-network/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+  peer1.org2.example.com:
+    url: dns:///localhost:8120
+    grpcOptions:
+      ssl-target-name-override: peer1.org2.example.com
+    tlsCACerts:
+      path: ../../test-network/organizations/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/ca.crt
+  peer2.org2.example.com:
+    url: dns:///localhost:8140
+    grpcOptions:
+      ssl-target-name-override: peer2.org2.example.com
+    tlsCACerts:
+      path: ../../test-network/organizations/peerOrganizations/org2.example.com/peers/peer2.org2.example.com/tls/ca.crt
+
+certificateAuthorities:
+  # This section is for MSP identity validation
+  ca.org1.example.com:
+    tlsCACerts:
+      path: ../../test-network/organizations/peerOrganizations/org1.example.com/msp/cacerts/ca.org1.example.com-cert.pem
+  ca.org2.example.com:
+    tlsCACerts:
+      path: ../../test-network/organizations/peerOrganizations/org2.example.com/msp/cacerts/ca.org2.example.com-cert.pem
