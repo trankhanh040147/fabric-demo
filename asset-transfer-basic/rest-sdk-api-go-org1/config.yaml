@@ -8,6 +8,32 @@ client:
   cryptoconfig:
     path: ../../test-network/organizations
 
+  # Increase all timeouts significantly for the large local network
+  global:
+    timeout:
+      query: 300s
+      execute: 300s
+      resmgmt: 300s
+  peer:
+    timeout:
+      connection: 30s
+      response: 300s
+  orderer:
+    timeout:
+      connection: 30s
+      response: 300s
+  eventService:
+    timeout:
+      registrationResponse: 30s
+
+  tlsCerts:
+    # Provide the client's certificate and key for mutual TLS (mTLS) handshake
+    client:
+      key:
+        path: ../../test-network/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.key
+      cert:
+        path: ../../test-network/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/tls/client.crt
+
   credentialStore:
     path: "/tmp/asset-transfer-basic-credential-store"
     cryptoStore:
@@ -64,6 +90,7 @@ organizations:
       - peer0.org1.example.com
       - peer1.org1.example.com
       - peer2.org1.example.com
+    # Directly define the trusted root certificate for MSP validation
     certificateAuthorities:
       - ca.org1.example.com
 
@@ -74,6 +101,7 @@ organizations:
       - peer0.org2.example.com
       - peer1.org2.example.com
       - peer2.org2.example.com
+    # Directly define the trusted root certificate for MSP validation
     certificateAuthorities:
       - ca.org2.example.com
 
@@ -82,7 +110,7 @@ orderers:
     url: dns:///localhost:7050
     grpcOptions:
       ssl-target-name-override: orderer.example.com
-      keep-alive-time: 0s
+      keep-alive-time: 120s
       keep-alive-timeout: 20s
       keep-alive-permit: false
       fail-fast: false
@@ -96,33 +124,24 @@ peers:
     url: dns:///localhost:7051
     grpcOptions:
       ssl-target-name-override: peer0.org1.example.com
-      keep-alive-time: 0s
+      keep-alive-time: 120s
       keep-alive-timeout: 20s
-      keep-alive-permit: false
-      fail-fast: false
-      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
   peer1.org1.example.com:
     url: dns:///localhost:9051
     grpcOptions:
       ssl-target-name-override: peer1.org1.example.com
-      keep-alive-time: 0s
+      keep-alive-time: 120s
       keep-alive-timeout: 20s
-      keep-alive-permit: false
-      fail-fast: false
-      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/tls/ca.crt
   peer2.org1.example.com:
     url: dns:///localhost:9151
     grpcOptions:
       ssl-target-name-override: peer2.org1.example.com
-      keep-alive-time: 0s
+      keep-alive-time: 120s
       keep-alive-timeout: 20s
-      keep-alive-permit: false
-      fail-fast: false
-      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer2.org1.example.com/tls/ca.crt
 
@@ -131,36 +150,29 @@ peers:
     url: dns:///localhost:8100
     grpcOptions:
       ssl-target-name-override: peer0.org2.example.com
-      keep-alive-time: 0s
+      keep-alive-time: 120s
       keep-alive-timeout: 20s
-      keep-alive-permit: false
-      fail-fast: false
-      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
   peer1.org2.example.com:
     url: dns:///localhost:8120
     grpcOptions:
       ssl-target-name-override: peer1.org2.example.com
-      keep-alive-time: 0s
+      keep-alive-time: 120s
       keep-alive-timeout: 20s
-      keep-alive-permit: false
-      fail-fast: false
-      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/ca.crt
   peer2.org2.example.com:
     url: dns:///localhost:8140
     grpcOptions:
       ssl-target-name-override: peer2.org2.example.com
-      keep-alive-time: 0s
+      keep-alive-time: 120s
       keep-alive-timeout: 20s
-      keep-alive-permit: false
-      fail-fast: false
-      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org2.example.com/peers/peer2.org2.example.com/tls/ca.crt
 
+# This section defines the CA certificates for MSP validation.
+# It is referenced by the 'certificateAuthorities' lists under each organization.
 certificateAuthorities:
   ca.org1.example.com:
     tlsCACerts:
