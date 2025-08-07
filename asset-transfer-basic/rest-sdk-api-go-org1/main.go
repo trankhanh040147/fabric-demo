@@ -37,8 +37,6 @@ func main() {
 	web.Serve(*orgSetup)
 }
 
-var defaultQueryArgs = [][]byte{[]byte("query"), []byte("b")}
-
 // TestManualConfig uses new sdk instance with new config which only has entries for org1.
 // this function tests,
 //
@@ -66,8 +64,8 @@ func TestManualConfig(chaincodeId string) {
 
 	req := channel.Request{
 		ChaincodeID: chaincodeId,
-		Fcn:         "invoke",
-		Args:        defaultQueryArgs,
+		Fcn:         "GetAllAssets",
+		Args:        nil,
 	}
 	resp, err := chClientOrg1User.Query(req, channel.WithRetry(retry.DefaultChannelOpts))
 	if err != nil {
