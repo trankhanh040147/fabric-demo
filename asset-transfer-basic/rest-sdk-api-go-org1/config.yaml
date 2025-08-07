@@ -25,7 +25,6 @@ client:
 channels:
   mychannel:
     peers:
-      # Define all peers that are part of the channel
       peer0.org1.example.com:
         endorsingPeer: true
         chaincodeQuery: true
@@ -83,6 +82,11 @@ orderers:
     url: dns:///localhost:7050
     grpcOptions:
       ssl-target-name-override: orderer.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 
@@ -92,18 +96,33 @@ peers:
     url: dns:///localhost:7051
     grpcOptions:
       ssl-target-name-override: peer0.org1.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
   peer1.org1.example.com:
     url: dns:///localhost:9051
     grpcOptions:
       ssl-target-name-override: peer1.org1.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/tls/ca.crt
   peer2.org1.example.com:
     url: dns:///localhost:9151
     grpcOptions:
       ssl-target-name-override: peer2.org1.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org1.example.com/peers/peer2.org1.example.com/tls/ca.crt
 
@@ -112,23 +131,37 @@ peers:
     url: dns:///localhost:8100
     grpcOptions:
       ssl-target-name-override: peer0.org2.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
   peer1.org2.example.com:
     url: dns:///localhost:8120
     grpcOptions:
       ssl-target-name-override: peer1.org2.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/ca.crt
   peer2.org2.example.com:
     url: dns:///localhost:8140
     grpcOptions:
       ssl-target-name-override: peer2.org2.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org2.example.com/peers/peer2.org2.example.com/tls/ca.crt
 
 certificateAuthorities:
-  # This section is for MSP identity validation
   ca.org1.example.com:
     tlsCACerts:
       path: ../../test-network/organizations/peerOrganizations/org1.example.com/msp/cacerts/ca.org1.example.com-cert.pem
