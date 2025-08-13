@@ -13,7 +13,7 @@ func main() {
 	orgConfig := web.OrgSetup{
 		OrgName:      "Org3",
 		MSPID:        "Org3MSP",
-		CertPath:     cryptoPath + "/users/User1@org3.example.com/msp/signcerts/User1@org3.example.com-cert.pem",
+		CertPath:     cryptoPath + "/users/User1@org3.example.com/msp/signcerts/cert.pem",
 		KeyPath:      cryptoPath + "/users/User1@org3.example.com/msp/keystore/",
 		TLSCertPath:  cryptoPath + "/peers/peer0.org3.example.com/tls/ca.crt",
 		PeerEndpoint: "dns:///localhost:8200",
