@@ -13,8 +13,8 @@ func main() {
 	orgConfig := web.OrgSetup{
 		OrgName:      "Org1",
 		MSPID:        "Org1MSP",
-		CertPath:     cryptoPath + "/users/User1@org1.example.com/msp/signcerts/cert.pem",
-		KeyPath:      cryptoPath + "/users/User1@org1.example.com/msp/keystore/",
+		CertPath:     cryptoPath + "/users/User2@org1.example.com/msp/signcerts/cert.pem",
+		KeyPath:      cryptoPath + "/users/User2@org1.example.com/msp/keystore/",
 		TLSCertPath:  cryptoPath + "/peers/peer0.org1.example.com/tls/ca.crt",
 		PeerEndpoint: "dns:///localhost:7051",
 		GatewayPeer:  "peer0.org1.example.com",
@@ -29,24 +29,24 @@ func main() {
 
 // client: User1.org2 - peer: peer0.org1
 //func main() {
-//	//Initialize setup for Org1
-//	cryptoPathOrg1 := "../../test-network/organizations/peerOrganizations/org1.example.com"
-//	cryptoPathOrg2 := "../../test-network/organizations/peerOrganizations/org2.example.com"
-//	orgConfig := web.OrgSetup{
-//		OrgName:      "Org2",
-//		MSPID:        "Org2MSP",
-//		CertPath:     cryptoPathOrg2 + "/users/User1@org2.example.com/msp/signcerts/cert.pem",
-//		KeyPath:      cryptoPathOrg2 + "/users/User1@org2.example.com/msp/keystore/",
-//		TLSCertPath:  cryptoPathOrg1 + "/peers/peer0.org1.example.com/tls/ca.crt",
-//		PeerEndpoint: "dns:///localhost:7051",
-//		GatewayPeer:  "peer0.org1.example.com",
-//	}
+//    //Initialize setup for Org1
+//    //cryptoPathOrg1 := "../../test-network/organizations/peerOrganizations/org1.example.com"
+//    cryptoPathOrg2 := "../../test-network/organizations/peerOrganizations/org2.example.com"
+//    orgConfig := web.OrgSetup{
+//        OrgName:      "Org2",
+//        MSPID:        "Org2MSP",
+//        CertPath:     cryptoPathOrg2 + "/users/User1@org2.example.com/msp/signcerts/cert.pem",
+//        KeyPath:      cryptoPathOrg2 + "/users/User1@org2.example.com/msp/keystore/",
+//        TLSCertPath:  cryptoPathOrg2 + "/peers/peer0.org2.example.com/tls/ca.crt",
+//        PeerEndpoint: "dns:///localhost:8100",
+//        GatewayPeer:  "peer0.org2.example.com",
+//    }
 //
-//	orgSetup, err := web.Initialize(orgConfig)
-//	if err != nil {
-//		fmt.Println("Error initializing setup for Org1: ", err)
-//	}
-//	web.Serve(web.OrgSetup(*orgSetup))
+//    orgSetup, err := web.Initialize(orgConfig)
+//    if err != nil {
+//        fmt.Println("Error initializing setup for Org1: ", err)
+//    }
+//    web.Serve(web.OrgSetup(*orgSetup))
 //}
 
 //func main() {
